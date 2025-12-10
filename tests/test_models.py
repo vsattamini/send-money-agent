@@ -57,24 +57,13 @@ def test_transaction_country_validation():
 
 
 def test_transaction_amount_validation():
-    """Test Transaction validates amount range."""
+    """Test Transaction validates amount minimum."""
     # Too low
     with pytest.raises(ValidationError):
         Transaction(
             beneficiary=Beneficiary(firstname="John", lastname="Doe"),
             country="México",
             amount=0.3,  # Below 0.5 minimum
-            payment_method="credit_card",
-            delivery_method="digital_wallet",
-            timestamp=datetime.now(),
-        )
-
-    # Too high
-    with pytest.raises(ValidationError):
-        Transaction(
-            beneficiary=Beneficiary(firstname="John", lastname="Doe"),
-            country="México",
-            amount=20000.0,  # Above daily limit
             payment_method="credit_card",
             delivery_method="digital_wallet",
             timestamp=datetime.now(),

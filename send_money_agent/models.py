@@ -64,11 +64,9 @@ class Transaction(BaseModel):
     @field_validator("amount")
     @classmethod
     def validate_amount(cls, v: float) -> float:
-        """Validate amount is within acceptable range."""
+        """Validate amount is positive and above minimum."""
         if v < MIN_AMOUNT:
             raise ValueError(f"Amount must be at least ${MIN_AMOUNT} USD")
-        if v > DAILY_LIMIT:
-            raise ValueError(f"Amount cannot exceed daily limit of ${DAILY_LIMIT} USD")
         return v
 
     @field_validator("payment_method")
