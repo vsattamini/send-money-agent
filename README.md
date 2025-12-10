@@ -20,7 +20,7 @@ pip install -e ".[dev]"
 export GOOGLE_API_KEY="your-google-api-key"
 
 # Run agent
-adk run send_money_agent/agent.py
+uv run adk run send_money_agent
 ```
 
 ## Example Usage
@@ -150,11 +150,11 @@ SEMESTER_LIMIT = 18000.0
 
 ```bash
 # With PostgreSQL
-adk web send_money_agent/agent.py \
+adk web send_money_agent \
   --session_service_uri="postgresql://user:pass@host:5432/db"
 
 # With Vertex AI
-adk web send_money_agent/agent.py \
+adk web send_money_agent \
   --session_service=vertexai
 ```
 

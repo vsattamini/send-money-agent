@@ -158,7 +158,7 @@ def main():
     demo_agent()
 
     print("\n" + "=" * 60)
-    print("Demo complete! Run agent with: uv run adk run send_money_agent/agent.py")
+    print("Demo complete! Run agent with: uv run adk run send_money_agent")
     print("=" * 60 + "\n")
 
 

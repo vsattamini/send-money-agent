@@ -144,7 +144,7 @@ uv pip install -e ".[dev]"
 export GOOGLE_API_KEY="your-google-api-key"
 
 # Run agent
-uv run adk run send_money_agent/agent.py
+uv run adk run send_money_agent
 ```
 
 ## Transfer Details
@@ -2912,7 +2912,7 @@ export GOOGLE_API_KEY="your-google-api-key"
 python examples/demo.py
 
 # 4. Run agent
-uv run adk web send_money_agent/agent.py
+uv run adk web send_money_agent
 ```
 
 Visit http://localhost:8000 and try:

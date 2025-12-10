@@ -163,10 +163,10 @@ def create_agent() -> LlmAgent:
 
 
 # Create agent instance for ADK CLI
-agent = create_agent()
+root_agent = create_agent()
 
 
 if __name__ == "__main__":
     """Entry point for ADK CLI."""
-    # Agent automatically discovered by: uv run adk run send_money_agent/agent.py
+    # Agent automatically discovered by: uv run adk run send_money_agent
     pass
