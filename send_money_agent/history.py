@@ -31,8 +31,20 @@ class TransactionHistory:
             csv_path: Path to CSV file. Defaults to data/transaction_history.csv
         """
         if csv_path is None:
-            csv_path = Path(__file__).parent.parent / "data" / "transaction_history.csv"
+            # Default to local_data/transactions.csv relative to project root
+            # Assuming agent is run from project root or installed as package
+            # We'll look for local_data in current working directory first, 
+            # then fall back to package data for read-only if local doesn't exist (optional, but sticking to local_data for now)
+            csv_path = Path("local_data/transactions.csv")
+            
         self.csv_path = csv_path
+        
+        # Ensure directory exists if we are going to write to it later
+        if not self.csv_path.parent.exists():
+            try:
+                self.csv_path.parent.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                pass # Might not have permissions, or read-only mode
 
     def load_all(self) -> List[TransactionHistoryRecord]:
         """Load all transactions from CSV.
@@ -45,25 +57,68 @@ class TransactionHistory:
         if not self.csv_path.exists():
             return records
 
-        with open(self.csv_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                record = TransactionHistoryRecord(
-                    phone_number=row["phone_number"],
-                    beneficiary=Beneficiary(
-                        firstname=row["beneficiary_firstname"],
-                        lastname=row["beneficiary_lastname"],
-                    ),
-                    country=row["country"],
-                    amount=float(row["amount"]),
-                    payment_method=row["payment_method"],
-                    delivery_method=row["delivery_method"],
-                    timestamp=datetime.fromisoformat(row["timestamp"]),
-                    confirmation_code=row["confirmation_code"],
-                )
-                records.append(record)
+        try:
+            with open(self.csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    # Skip empty lines or malformed rows
+                    if not row or not row.get("phone_number"):
+                        continue
+                        
+                    record = TransactionHistoryRecord(
+                        phone_number=row["phone_number"],
+                        beneficiary=Beneficiary(
+                            firstname=row["beneficiary_firstname"],
+                            lastname=row["beneficiary_lastname"],
+                        ),
+                        country=row["country"],
+                        amount=float(row["amount"]),
+                        payment_method=row["payment_method"],
+                        delivery_method=row["delivery_method"],
+                        timestamp=datetime.fromisoformat(row["timestamp"]),
+                        confirmation_code=row["confirmation_code"],
+                    )
+                    records.append(record)
+        except Exception as e:
+            print(f"Warning: Error loading history from {self.csv_path}: {e}")
+            return []
 
         return records
+
+    def add_transaction(self, record: TransactionHistoryRecord) -> None:
+        """Add a new transaction to the history (persistent).
+
+        Args:
+            record: Transaction record to add
+        """
+        file_exists = self.csv_path.exists()
+        
+        headers = [
+            "phone_number", "beneficiary_firstname", "beneficiary_lastname",
+            "country", "amount", "payment_method", "delivery_method",
+            "timestamp", "confirmation_code"
+        ]
+        
+        row = {
+            "phone_number": record.phone_number,
+            "beneficiary_firstname": record.beneficiary.firstname,
+            "beneficiary_lastname": record.beneficiary.lastname,
+            "country": record.country,
+            "amount": record.amount,
+            "payment_method": record.payment_method,
+            "delivery_method": record.delivery_method,
+            "timestamp": record.timestamp.isoformat(),
+            "confirmation_code": record.confirmation_code,
+        }
+        
+        try:
+            with open(self.csv_path, "a", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=headers)
+                if not file_exists or self.csv_path.stat().st_size == 0:
+                    writer.writeheader()
+                writer.writerow(row)
+        except Exception as e:
+            print(f"Error writing transaction to {self.csv_path}: {e}")
 
     def get_user_transactions(self, phone_number: str) -> List[TransactionHistoryRecord]:
         """Get all transactions for a specific user.

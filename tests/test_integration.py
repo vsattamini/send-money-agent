@@ -2,6 +2,8 @@
 
 import pytest
 from datetime import datetime, timedelta
+from pathlib import Path
+from send_money_agent.agent import create_agent, AGENT_INSTRUCTION
 from send_money_agent.models import Beneficiary, Transaction
 from send_money_agent.history import TransactionHistory, find_beneficiary_history
 from send_money_agent.limits import LimitsTracker
@@ -9,8 +11,9 @@ from send_money_agent.limits import LimitsTracker
 
 def test_end_to_end_beneficiary_lookup():
     """Test complete flow of looking up beneficiary history."""
-    # Load history
-    history = TransactionHistory()
+    # Load history with test data
+    test_data_path = Path(__file__).parent.parent / "data" / "transaction_history.csv"
+    history = TransactionHistory(csv_path=test_data_path)
 
     # Find John Matthews transactions
     matches = find_beneficiary_history(
@@ -82,7 +85,8 @@ def test_workflow_ambiguous_beneficiary_resolution():
     """Test workflow for resolving ambiguous beneficiary names."""
     # User says "send to John"
     # Agent should lookup history
-    history = TransactionHistory()
+    test_data_path = Path(__file__).parent.parent / "data" / "transaction_history.csv"
+    history = TransactionHistory(csv_path=test_data_path)
     matches = find_beneficiary_history(history, "+1234567890", firstname="John")
 
     # Should find John Matthews
@@ -131,7 +135,8 @@ def test_workflow_limit_exceeded_handling():
 
 def test_workflow_multiple_beneficiaries():
     """Test handling multiple beneficiaries in history."""
-    history = TransactionHistory()
+    test_data_path = Path(__file__).parent.parent / "data" / "transaction_history.csv"
+    history = TransactionHistory(csv_path=test_data_path)
 
     # Get all transactions for user
     user_txns = history.get_user_transactions("+1234567890")

@@ -15,9 +15,70 @@ from send_money_agent.models import (
 )
 
 
+from send_money_agent.history import TransactionHistory, TransactionHistoryRecord
+from send_money_agent.limits import LimitsTracker
+
+def set_phone_number(tool_context: ToolContext, phone_number: str) -> Dict[str, Any]:
+    """Set the user's phone number (Login) and retrieve profile.
+
+    Args:
+        tool_context: ADK tool context with state access
+        phone_number: User's phone number
+
+    Returns:
+        Dictionary with success status, phone number, and profile info
+    """
+    # Simple validation (can be enhanced)
+    if not phone_number or len(phone_number) < 5:
+        return {
+            "success": False,
+            "error": "Please provide a valid phone number.",
+        }
+    
+    # Update state
+    tool_context.state["phone_number"] = phone_number
+    
+    # Check history and limits
+    history = TransactionHistory()
+    user_txns = history.get_user_transactions(phone_number)
+    
+    # Calculate limits
+    tracker = LimitsTracker(user_txns)
+    limits = tracker.get_current_limits()
+    
+    # Special greeting for Major Carlos (demo profile)
+    # Using the seed data phone number
+    is_major_carlos = phone_number == "+15550001111"
+    
+    profile_msg = ""
+    if is_major_carlos:
+        profile_msg = "Welcome back, Major Carlos! "
+    elif len(user_txns) > 0:
+        profile_msg = f"Welcome back! You have {len(user_txns)} past transactions. "
+    else:
+        profile_msg = "Welcome! I see you are a new user. "
+        
+    limit_msg = (
+        f"Your daily limit remaining is ${limits.daily_remaining:.2f}. "
+        f"Monthly remaining: ${limits.monthly_remaining:.2f}."
+    )
+    
+    return {
+        "success": True,
+        "phone_number": phone_number,
+        "is_known_user": len(user_txns) > 0,
+        "limits": {
+            "daily_remaining": limits.daily_remaining,
+            "monthly_remaining": limits.monthly_remaining,
+            "semester_remaining": limits.semester_remaining
+        },
+        "message": f"{profile_msg}{limit_msg} How can I help you today?",
+    }
+
+
 def set_country(tool_context: ToolContext, country: str) -> Dict[str, Any]:
     """Set or update the destination country for the transfer.
-
+    
     Args:
         tool_context: ADK tool context with state access
         country: Destination country name
@@ -211,7 +272,7 @@ def transfer_money(
     payment_method: str,
     delivery_method: str,
 ) -> Dict[str, Any]:
-    """Execute a money transfer (mock implementation).
+    """Execute a money transfer and save to history.
 
     This is the primary tool that executes the transfer after all details
     have been collected and validated.
@@ -229,23 +290,43 @@ def transfer_money(
         Dictionary with success status, confirmation code, or error message
     """
     try:
+        # Get phone number from state (required for history)
+        phone_number = tool_context.state.get("phone_number")
+        if not phone_number:
+            return {"success": False, "error": "User phone number not found in session state. Please login first."}
+
         # Create and validate beneficiary
         beneficiary = Beneficiary(
             firstname=beneficiary_firstname, lastname=beneficiary_lastname
         )
 
         # Create and validate transaction (Pydantic will validate all fields)
+        timestamp = datetime.now()
         transaction = Transaction(
             beneficiary=beneficiary,
             country=country,
             amount=amount,
             payment_method=payment_method,
             delivery_method=delivery_method,
-            timestamp=datetime.now(),
+            timestamp=timestamp,
         )
 
         # Generate mock confirmation code
         confirmation_code = f"TXN-{secrets.token_hex(4).upper()}"
+        
+        # Persist transaction
+        history = TransactionHistory()
+        record = TransactionHistoryRecord(
+            phone_number=phone_number,
+            beneficiary=beneficiary,
+            country=country,
+            amount=amount,
+            payment_method=payment_method,
+            delivery_method=delivery_method,
+            timestamp=timestamp,
+            confirmation_code=confirmation_code
+        )
+        history.add_transaction(record)
 
         # Store confirmation in state for reference
         tool_context.state["last_transfer_confirmation"] = confirmation_code

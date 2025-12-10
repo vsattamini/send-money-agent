@@ -11,8 +11,9 @@ from send_money_agent.models import Beneficiary
 
 @pytest.fixture
 def history():
-    """Create TransactionHistory instance."""
-    return TransactionHistory()
+    """Create TransactionHistory instance with test data."""
+    test_data_path = Path(__file__).parent.parent / "data" / "transaction_history.csv"
+    return TransactionHistory(csv_path=test_data_path)
 
 
 def test_load_history(history):

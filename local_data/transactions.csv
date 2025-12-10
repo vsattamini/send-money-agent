@@ -1,0 +1,13 @@
+phone_number,beneficiary_firstname,beneficiary_lastname,country,amount,payment_method,delivery_method,timestamp,confirmation_code
++15550001111,Maria,Saavedra,Colombia,200.0,bank_transfer,bank_account,2025-10-31T20:45:07.931683,TXN-SEED-001
++15550001111,Juan,Perez,México,150.0,credit_card,digital_wallet,2025-12-03T20:45:07.931683,TXN-SEED-002
++15550001111,Ana,Gomez,El Salvador,300.0,debit_card,digital_wallet,2025-12-09T20:45:07.931683,TXN-SEED-003
++1234567890,John,Matthews,Colombia,100.0,credit_card,digital_wallet,2025-12-10T20:48:12.693214,TXN-D69396C1
++1234567890,John,Doe,México,100.0,credit_card,digital_wallet,2025-12-10T20:48:12.697822,TXN-99C12533
++1234567890,Jane,Doe,Colombia,200.0,debit_card,bank_account,2025-12-10T20:48:12.698071,TXN-F2F530BD
++1234567890,John,Matthews,Colombia,100.0,credit_card,digital_wallet,2025-12-10T20:48:51.042525,TXN-D40D059B
++1234567890,John,Doe,México,100.0,credit_card,digital_wallet,2025-12-10T20:48:51.047007,TXN-299340D5
++1234567890,Jane,Doe,Colombia,200.0,debit_card,bank_account,2025-12-10T20:48:51.047192,TXN-5A61FFF8
++1234567890,John,Matthews,Colombia,100.0,credit_card,digital_wallet,2025-12-10T20:50:22.495037,TXN-24BF4883
++1234567890,John,Doe,México,100.0,credit_card,digital_wallet,2025-12-10T20:50:22.501268,TXN-F2F51EE5
++1234567890,Jane,Doe,Colombia,200.0,debit_card,bank_account,2025-12-10T20:50:22.501705,TXN-39CF904F

@@ -2,6 +2,7 @@
 
 from google.adk.agents import LlmAgent
 from send_money_agent.tools import (
+    set_phone_number,
     set_country,
     set_amount,
     set_beneficiary,
@@ -23,11 +24,19 @@ from send_money_agent.models import (
 # Agent instruction with state templating
 AGENT_INSTRUCTION = """You are a helpful money transfer assistant for WhatsApp. Your goal is to help users send money internationally by collecting the necessary information in a conversational, friendly way.
 
+## CRITICAL: Login First
+**You MUST ask for the user's phone number immediately at the start of the conversation.**
+- Do not ask for transfer details until you have confirmed the phone number.
+- Use `set_phone_number(phone_number)` to log them in.
+- If the user says "Major Carlos", assume the phone number is `+15550001111`.
+- The tool will return their profile and current limit status—summarize this for them.
+
 ## Your Objective
 
 Collect all required transfer information using the state update tools, then execute the transfer:
 
 **State Update Tools** (use these as you gather information):
+- `set_phone_number(phone_number)` - **REQUIRED FIRST STEP**
 - `set_country(country)` - Set destination country
 - `set_amount(amount)` - Set transfer amount
 - `set_beneficiary(firstname, lastname)` - Set recipient details
@@ -35,7 +44,7 @@ Collect all required transfer information using the state update tools, then exe
 - `set_delivery_method(delivery_method)` - Set how beneficiary receives money
 
 **Transfer Tool** (use ONLY after confirming all details with user):
-- `transfer_money(beneficiary_firstname, beneficiary_lastname, country, amount, payment_method, delivery_method)` - Execute the transfer
+- `transfer_money(...)` - Execute the transfer
 
 ## Tool Usage Strategy
 
@@ -110,6 +119,7 @@ Collect all required transfer information using the state update tools, then exe
 ## Current Session State
 
 You can track what you've collected using state variables:
+- Phone Number: {{phone_number?}}
 - Country: {{country?}}
 - Beneficiary First Name: {{beneficiary_firstname?}}
 - Beneficiary Last Name: {{beneficiary_lastname?}}
@@ -150,6 +160,7 @@ def create_agent() -> LlmAgent:
         description="WhatsApp-based conversational assistant for international money transfers with limit validation and history lookup",
         instruction=formatted_instruction,
         tools=[
+            set_phone_number,
             set_country,
             set_amount,
             set_beneficiary,
