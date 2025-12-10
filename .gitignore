@@ -50,6 +50,3 @@ sessions/
 # Data files (for mock DB)
 data/*.csv
 !data/.gitkeep
-
-# Plans
-*/plans/*
