@@ -1,0 +1,6 @@
+phone_number,beneficiary_firstname,beneficiary_lastname,country,amount,payment_method,delivery_method,timestamp,confirmation_code
++1234567890,John,Matthews,Colombia,100.50,credit_card,digital_wallet,2025-12-01T10:30:00,TXN-001
++1234567890,Maria,Garcia,México,250.00,debit_card,bank_account,2025-12-03T14:20:00,TXN-002
++1234567890,John,Matthews,Colombia,75.00,bank_transfer,digital_wallet,2025-12-05T09:15:00,TXN-003
++9876543210,Carlos,Rodriguez,Guatemala,500.00,credit_card,digital_wallet,2025-12-02T16:45:00,TXN-004
++1234567890,Ana,Lopez,El Salvador,150.00,credit_card,bank_account,2025-12-07T11:00:00,TXN-005
