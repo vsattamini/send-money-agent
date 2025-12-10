@@ -1,4 +1,4 @@
-# Send Money Agent Implementation Plan
+clea# Send Money Agent Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
