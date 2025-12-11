@@ -1,0 +1,67 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.9, pytest-9.0.2, pluggy-1.6.0 -- /home/vlofgren/.pyenv/versions/felix/bin/python
+cachedir: .pytest_cache
+rootdir: /home/vlofgren/Projects/felix_pago/send_money_agent
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 56 items
+
+tests/test_agent.py::test_create_agent PASSED
+tests/test_agent.py::test_agent_has_all_tools PASSED
+tests/test_agent.py::test_agent_has_instruction PASSED
+tests/test_history.py::test_load_history PASSED
+tests/test_history.py::test_get_user_transactions PASSED
+tests/test_history.py::test_get_user_transactions_empty PASSED
+tests/test_history.py::test_find_beneficiary_history_exact_match PASSED
+tests/test_history.py::test_find_beneficiary_history_firstname_only PASSED
+tests/test_history.py::test_find_beneficiary_history_no_match PASSED
+tests/test_history.py::test_find_beneficiary_history_case_insensitive PASSED
+tests/test_history.py::test_get_most_recent_to_beneficiary PASSED
+tests/test_history.py::test_transaction_history_record_structure PASSED
+tests/test_integration.py::test_end_to_end_beneficiary_lookup PASSED
+tests/test_integration.py::test_end_to_end_limit_validation PASSED
+tests/test_integration.py::test_end_to_end_new_transfer_validation PASSED
+tests/test_integration.py::test_workflow_ambiguous_beneficiary_resolution PASSED
+tests/test_integration.py::test_workflow_limit_exceeded_handling PASSED
+tests/test_integration.py::test_workflow_multiple_beneficiaries PASSED
+tests/test_limits.py::test_calculate_period_usage_daily PASSED
+tests/test_limits.py::test_calculate_period_usage_monthly PASSED
+tests/test_limits.py::test_calculate_period_usage_semester PASSED
+tests/test_limits.py::test_limits_tracker_check_limits_within PASSED
+tests/test_limits.py::test_limits_tracker_check_limits_exceeds_daily PASSED
+tests/test_limits.py::test_limits_tracker_check_limits_exceeds_monthly PASSED
+tests/test_limits.py::test_limits_tracker_check_limits_exceeds_semester PASSED
+tests/test_limits.py::test_limits_tracker_get_current_limits PASSED
+tests/test_models.py::test_beneficiary_validation PASSED
+tests/test_models.py::test_beneficiary_requires_both_names PASSED
+tests/test_models.py::test_transaction_valid PASSED
+tests/test_models.py::test_transaction_country_validation PASSED
+tests/test_models.py::test_transaction_amount_validation PASSED
+tests/test_models.py::test_transaction_payment_method_validation PASSED
+tests/test_models.py::test_transaction_delivery_method_validation PASSED
+tests/test_models.py::test_transfer_limits_initialization PASSED
+tests/test_models.py::test_transfer_limits_remaining PASSED
+tests/test_models.py::test_transfer_limits_can_transfer PASSED
+tests/test_models.py::test_supported_constants PASSED
+tests/test_tools.py::test_set_country_valid PASSED
+tests/test_tools.py::test_set_country_invalid PASSED
+tests/test_tools.py::test_set_country_updates_existing PASSED
+tests/test_tools.py::test_set_amount_valid PASSED
+tests/test_tools.py::test_set_amount_below_minimum PASSED
+tests/test_tools.py::test_set_amount_validates_limits PASSED
+tests/test_tools.py::test_set_amount_exceeds_limits PASSED
+tests/test_tools.py::test_set_beneficiary_valid PASSED
+tests/test_tools.py::test_set_beneficiary_missing_lastname PASSED
+tests/test_tools.py::test_set_payment_method_valid PASSED
+tests/test_tools.py::test_set_payment_method_invalid PASSED
+tests/test_tools.py::test_set_delivery_method_valid PASSED
+tests/test_tools.py::test_set_delivery_method_invalid PASSED
+tests/test_tools.py::test_transfer_money_success PASSED
+tests/test_tools.py::test_transfer_money_invalid_country PASSED
+tests/test_tools.py::test_transfer_money_invalid_amount PASSED
+tests/test_tools.py::test_transfer_money_invalid_payment_method PASSED
+tests/test_tools.py::test_transfer_money_invalid_delivery_method PASSED
+tests/test_tools.py::test_transfer_money_generates_unique_codes PASSED
+
+============================== 56 passed in 1.44s ==============================
