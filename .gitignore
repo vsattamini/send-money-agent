@@ -49,4 +49,4 @@ sessions/
 
 # Data files (for mock DB)
 data/*.csv
-!data/.gitkeeplocal_data/
+!data/.gitkeep
