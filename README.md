@@ -21,7 +21,27 @@ export GOOGLE_API_KEY="your-google-api-key"
 
 # Run agent
 uv run adk run send_money_agent
+# Run agent
+uv run adk run send_money_agent
 ```
+
+> **Note**: If you hit the API rate limit (429 Resource Exhausted), the agent will automatically pause for 60 seconds and retry.
+
+## New Features & Demo (Persistence)
+
+The agent now supports persistent transaction history and user login.
+
+**Demo Profile: "Major Carlos"**
+- **Phone**: `+15550001111`
+- **History**: Pre-loaded with 3 past transactions.
+- **Limits**: Shows real-time limit usage based on history.
+
+**Try it out:**
+1. Run: `uv run adk run send_money_agent`
+2. Enter phone: `+15550001111` (or say "I am Major Carlos")
+3. Make a transfer and restart—your history is saved in `local_data/`.
+
+See [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md) for full details on persistence and simulation.
 
 ## Example Usage
 
@@ -161,6 +181,8 @@ adk web send_money_agent \
 ## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
+- [Walkthrough & Persistence](docs/WALKTHROUGH.md)
+- [Technical Notes & Hacks](docs/TECHNICAL_NOTES.md)
 - [Example Conversations](examples/conversations.md)
 - [ADK Documentation](https://google.github.io/adk-docs/)
 - [ADK State Management](https://google.github.io/adk-docs/sessions/state/)
