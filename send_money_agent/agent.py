@@ -20,6 +20,39 @@ from send_money_agent.models import (
     SEMESTER_LIMIT,
 )
 
+# --- Monkey-patch for graceful 429 handling ---
+import asyncio
+import sys
+import google.adk.models.google_llm as google_llm
+
+_original_generate_content_async = google_llm.Gemini.generate_content_async
+
+async def patched_generate_content_async(self, *args, **kwargs):
+    """Intercept 429 errors and retry after waiting."""
+    while True:
+        try:
+            # Consume the async generator
+            async for response in _original_generate_content_async(self, *args, **kwargs):
+                yield response
+            return # Completed successfully
+        except google_llm._ResourceExhaustedError:
+            print("\n" + "!" * 60, file=sys.stderr)
+            print("WARNING: 429 RESOURCE EXHAUSED (QUOTA LIMIT)", file=sys.stderr)
+            print("WAIT ONE MINUTE BEFORE CONTINUING...", file=sys.stderr)
+            print("!" * 60 + "\n", file=sys.stderr)
+            
+            # Wait 60 seconds + buffer
+            for i in range(60, 0, -1):
+                if i % 10 == 0:
+                    print(f"Resuming in {i} seconds...", file=sys.stderr)
+                await asyncio.sleep(1)
+            
+            print("Retrying request now...", file=sys.stderr)
+
+# Apply patch
+google_llm.Gemini.generate_content_async = patched_generate_content_async
+# ---------------------------------------------
+
 
 # Agent instruction with state templating
 AGENT_INSTRUCTION = """You are a helpful money transfer assistant for WhatsApp. Your goal is to help users send money internationally by collecting the necessary information in a conversational, friendly way.
@@ -81,6 +114,7 @@ Collect all required transfer information using the state update tools, then exe
    - If you find previous transfers to someone with that name, suggest them:
      "I see you previously sent to John Matthews in Colombia via digital wallet. Is this the same person?"
    - If they confirm, call the state update tools with those details
+   - **New**: The `set_beneficiary` tool might explicitly suggest repeating a past transfer. If the user agrees ("Yes"), use the details from the tool's history info (Country, Payment Method, Delivery Method) to automatically set those fields using the respective tools.
 
 6. **Validate Limits at Amount Step**:
    - When calling `set_amount()`, the tool validates against limits

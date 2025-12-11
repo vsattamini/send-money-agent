@@ -15,7 +15,7 @@ from send_money_agent.models import (
 )
 
 
-from send_money_agent.history import TransactionHistory, TransactionHistoryRecord
+from send_money_agent.history import TransactionHistory, TransactionHistoryRecord, find_beneficiary_history
 from send_money_agent.limits import LimitsTracker
 
 def set_phone_number(tool_context: ToolContext, phone_number: str) -> Dict[str, Any]:
@@ -128,8 +128,23 @@ def set_amount(tool_context: ToolContext, amount: float) -> Dict[str, Any]:
             "error": f"Amount must be at least ${MIN_AMOUNT} USD",
         }
 
-    # TODO: Add limit validation using transaction history
-    # For now, just validate against Pydantic model max (daily limit)
+    # Validate against limits using transaction history
+    phone_number = tool_context.state.get("phone_number")
+    if phone_number:
+        history = TransactionHistory()
+        user_txns = history.get_user_transactions(phone_number)
+        tracker = LimitsTracker(user_txns)
+        can_transfer, reason = tracker.check_limits(amount)
+        
+        if not can_transfer:
+            # Get current limits for helpful message
+            limits = tracker.get_current_limits()
+            return {
+                "success": False,
+                "error": f"Amount ${amount:.2f} exceeds limit: {reason}. Remaining daily: ${limits.daily_remaining:.2f}, monthly: ${limits.monthly_remaining:.2f}.",
+            }
+
+    # Also validate against static Pydantic model max (daily limit) as a fallback/sanity check
     try:
         # This will raise if amount > DAILY_LIMIT
         Transaction(
@@ -189,10 +204,39 @@ def set_beneficiary(
     tool_context.state["beneficiary_firstname"] = firstname
     tool_context.state["beneficiary_lastname"] = lastname
 
+    # Lookup history for this beneficiary
+    history_info = {}
+    history_msg = ""
+
+    phone_number = tool_context.state.get("phone_number")
+    if phone_number:
+        history = TransactionHistory()
+        matches = find_beneficiary_history(
+            history, phone_number, firstname=firstname, lastname=lastname
+        )
+
+        if matches:
+            last_txn = matches[0]
+            count = len(matches)
+            # Store some history context to help the agent
+            history_info = {
+                "match_count": count,
+                "dataset_match": True,
+                "last_country": last_txn.country,
+                "last_payment_method": last_txn.payment_method,
+                "last_delivery_method": last_txn.delivery_method,
+            }
+            history_msg = (
+                f" I found {count} past transfer(s) to {beneficiary.full_name}. "
+                f"The last one was to {last_txn.country} via {last_txn.delivery_method}. "
+                "Would you like to repeat the transfer?"
+            )
+
     return {
         "success": True,
         "beneficiary": beneficiary.full_name,
-        "message": f"Beneficiary set to {beneficiary.full_name}",
+        "history": history_info,
+        "message": f"Beneficiary set to {beneficiary.full_name}.{history_msg}",
     }
 
 
@@ -295,6 +339,14 @@ def transfer_money(
         if not phone_number:
             return {"success": False, "error": "User phone number not found in session state. Please login first."}
 
+        # Check limits one last time before execution
+        history = TransactionHistory()
+        user_txns = history.get_user_transactions(phone_number)
+        tracker = LimitsTracker(user_txns)
+        can_transfer, reason = tracker.check_limits(amount)
+        if not can_transfer:
+            return {"success": False, "error": f"Transfer failed: Amount exceeds limit ({reason})."}
+
         # Create and validate beneficiary
         beneficiary = Beneficiary(
             firstname=beneficiary_firstname, lastname=beneficiary_lastname
@@ -315,7 +367,7 @@ def transfer_money(
         confirmation_code = f"TXN-{secrets.token_hex(4).upper()}"
         
         # Persist transaction
-        history = TransactionHistory()
+        # history instance already created above
         record = TransactionHistoryRecord(
             phone_number=phone_number,
             beneficiary=beneficiary,

@@ -1,7 +1,7 @@
 """Test state update and transfer tools."""
 
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from datetime import datetime
 from send_money_agent.tools import (
     set_country,
@@ -51,8 +51,13 @@ def test_set_country_updates_existing():
     assert mock_context.state["country"] == "Colombia"
 
 
-def test_set_amount_valid():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_set_amount_valid(MockTransactionHistory):
     """Test setting valid amount."""
+    # Mock history to return no transactions (full limits)
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+    
     mock_context = Mock()
     mock_context.state = {"phone_number": "+1234567890"}
 
@@ -74,16 +79,49 @@ def test_set_amount_below_minimum():
     assert "0.5" in result["error"]
 
 
-def test_set_amount_validates_limits():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_set_amount_validates_limits(MockTransactionHistory):
     """Test amount validates against user limits."""
-    # Note: This requires transaction history, simplified for now
+    # Mock history to return no transactions (full limits)
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+    
     mock_context = Mock()
-    mock_context.state = {}
+    mock_context.state = {"phone_number": "+1234567890"}
 
     result = set_amount(mock_context, 500.0)
 
     assert result["success"] is True
-    # Limit validation will be enhanced with history lookup
+
+
+@patch("send_money_agent.tools.TransactionHistory")
+@patch("send_money_agent.tools.LimitsTracker")
+def test_set_amount_exceeds_limits(MockLimitsTracker, MockTransactionHistory):
+    """Test set_amount fails when limits are exceeded."""
+    # Setup mocks
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = ["some_txn"] # Dummy return
+    
+    mock_tracker = MockLimitsTracker.return_value
+    # Simulate check_limits returning False and a reason
+    mock_tracker.check_limits.return_value = (False, "daily limit exceeded")
+    
+    # Simulate get_current_limits returning a Limits object (mocked)
+    mock_limits = Mock()
+    mock_limits.daily_remaining = 10.0
+    mock_limits.monthly_remaining = 1000.0
+    mock_tracker.get_current_limits.return_value = mock_limits
+    
+    mock_context = Mock()
+    mock_context.state = {"phone_number": "+1234567890"}
+
+    # Try to set usage (amount doesn't matter much as check_limits is mocked to fail)
+    result = set_amount(mock_context, 100.0)
+
+    assert result["success"] is False
+    assert "exceeds limit" in result["error"]
+    assert "daily limit exceeded" in result["error"]
+    assert "Remaining daily: $10.00" in result["error"]
 
 
 def test_set_beneficiary_valid():
@@ -157,8 +195,13 @@ def test_set_delivery_method_invalid():
 # Transfer Money Tool Tests
 
 
-def test_transfer_money_success():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_transfer_money_success(MockTransactionHistory):
     """Test successful transfer execution."""
+    # Mock history to return no transactions (full limits)
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+
     mock_context = Mock()
     mock_context.state = {
         "phone_number": "+1234567890",
@@ -181,8 +224,13 @@ def test_transfer_money_success():
     assert result["beneficiary"] == "John Matthews"
 
 
-def test_transfer_money_invalid_country():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_transfer_money_invalid_country(MockTransactionHistory):
     """Test transfer with invalid country."""
+    # Mock history
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+
     mock_context = Mock()
     mock_context.state = {"phone_number": "+1234567890"}
 
@@ -201,8 +249,13 @@ def test_transfer_money_invalid_country():
     assert "country" in result["error"].lower()
 
 
-def test_transfer_money_invalid_amount():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_transfer_money_invalid_amount(MockTransactionHistory):
     """Test transfer with invalid amount."""
+    # Mock history
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+
     mock_context = Mock()
     mock_context.state = {"phone_number": "+1234567890"}
 
@@ -221,8 +274,13 @@ def test_transfer_money_invalid_amount():
     assert "0.5" in result["error"]  # Minimum amount
 
 
-def test_transfer_money_invalid_payment_method():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_transfer_money_invalid_payment_method(MockTransactionHistory):
     """Test transfer with invalid payment method."""
+    # Mock history
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+
     mock_context = Mock()
     mock_context.state = {"phone_number": "+1234567890"}
 
@@ -241,8 +299,13 @@ def test_transfer_money_invalid_payment_method():
     assert "payment" in result["error"].lower()
 
 
-def test_transfer_money_invalid_delivery_method():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_transfer_money_invalid_delivery_method(MockTransactionHistory):
     """Test transfer with invalid delivery method."""
+    # Mock history
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+
     mock_context = Mock()
     mock_context.state = {"phone_number": "+1234567890"}
 
@@ -261,8 +324,13 @@ def test_transfer_money_invalid_delivery_method():
     assert "delivery" in result["error"].lower()
 
 
-def test_transfer_money_generates_unique_codes():
+@patch("send_money_agent.tools.TransactionHistory")
+def test_transfer_money_generates_unique_codes(MockTransactionHistory):
     """Test that transfer generates unique confirmation codes."""
+    # Mock history
+    mock_history = MockTransactionHistory.return_value
+    mock_history.get_user_transactions.return_value = []
+
     mock_context = Mock()
     mock_context.state = {"phone_number": "+1234567890"}
 
