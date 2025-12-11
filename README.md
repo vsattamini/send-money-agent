@@ -195,6 +195,6 @@ adk web send_money_agent \
 - **Pydantic v2**: Data validation
 - **Pytest**: Testing
 
-## License
+## AI Generation Disclaimer
 
-Educational/demonstration project for Felix Pago interview.
+This project heavily Claude Code (with the ```superpowers``` skill package) and Gemini 3 (via Google Antigravity IDE)
