@@ -197,4 +197,4 @@ adk web send_money_agent \
 
 ## AI Generation Disclaimer
 
-This project heavily Claude Code (with the ```superpowers``` skill package) and Gemini 3 (via Google Antigravity IDE)
+This project heavily used Claude Code (with the ```superpowers``` skill package) and Gemini 3 (via Google Antigravity IDE)
