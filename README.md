@@ -162,22 +162,6 @@ SEMESTER_LIMIT = 18000.0
 
 **Delivery Methods**: Digital Wallet, Bank Account
 
-## Production Deployment
-
-**Current**: In-memory session (for development)
-
-**Production**: Use persistent session service
-
-```bash
-# With PostgreSQL
-adk web send_money_agent \
-  --session_service_uri="postgresql://user:pass@host:5432/db"
-
-# With Vertex AI
-adk web send_money_agent \
-  --session_service=vertexai
-```
-
 ## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
